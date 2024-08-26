@@ -2,7 +2,7 @@ const CACHE_NAME = 'app-cache-v5';
 const urlsToCache = [
   './',
   './index.html',
-  // '/styles.css',
+  '/src/assets/fonts/**',
   './src/serviceRegistration.ts',
   './public/assets/sunset.jpeg',
 ];
@@ -21,10 +21,17 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
+
+
 self.addEventListener('fetch', event => {
+  if (event.request.method === 'POST') {
+    return; // Skip POST requests
+  }
+
   if (event.request.url.startsWith('chrome-extension://')) {
     return; // Skip caching for Chrome extension requests
   }
+
 
   event.respondWith(
     fetch(event.request)
@@ -41,11 +48,16 @@ self.addEventListener('fetch', event => {
       })
       .catch(async () => {
         // Serve from cache or fallback page
-        return caches.match(event.request)
-          .then(cachedResponse => {
-            return cachedResponse
-            // || caches.match('./offline.html');
-          });
+        return event.respondWith(
+          caches.match(event.request).then((cachedResponse) => {
+            return cachedResponse || fetch(event.request);
+          })
+        );
+        // return caches.match(event.request)
+        //   .then(cachedResponse => {
+        //     return cachedResponse
+        //     // || caches.match('./offline.html');
+        //   });
       })
   );
 });
